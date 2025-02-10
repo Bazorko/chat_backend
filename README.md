@@ -1,1 +1,1 @@
-# chat_backend
+The backend infrastructure for my real time chat application.
