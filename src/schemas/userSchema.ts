@@ -15,8 +15,9 @@ const userSchema = new Schema({
         required: true,
         lowercase: true,
     },
-    friendsList: [{
-        id: String,
+    inbox: [{
+        uid: String,
+        username: String,
     }],
     createdAt: {
         type: Date,
