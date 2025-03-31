@@ -2,13 +2,8 @@ import express from "express";
 import FindUser from "../middleware/FindUser";
 import Users from "../schemas/userSchema";
 import { httpResponse } from "../middleware/HttpResponse";
-import mongoose from "mongoose";
 
 const userRouter = express.Router();
-
-if(process.env.DB_URI){
-    mongoose.connect(process.env.DB_URI);
-}
 
 //Signup
 userRouter.post("/signup", async (req, res) => {

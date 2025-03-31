@@ -16,11 +16,7 @@ const express_1 = __importDefault(require("express"));
 const FindUser_1 = __importDefault(require("../middleware/FindUser"));
 const userSchema_1 = __importDefault(require("../schemas/userSchema"));
 const HttpResponse_1 = require("../middleware/HttpResponse");
-const mongoose_1 = __importDefault(require("mongoose"));
 const userRouter = express_1.default.Router();
-if (process.env.DB_URI) {
-    mongoose_1.default.connect(process.env.DB_URI);
-}
 //Signup
 userRouter.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, email } = req.body;
