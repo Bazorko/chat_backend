@@ -27,7 +27,6 @@ userRouter.post("/signup", async (req, res) => {
         await newUser.save();
         const user = await Users.findOne({ email });
         const rawData = user?.toObject();
-        console.log(rawData);
         httpResponse(res, 201, { ...rawData }, "Account created.");
     } catch(error) {
         console.log(error);
@@ -46,17 +45,21 @@ userRouter.post("/signin", async (req, res) => {
     }
 });
 
-//Add Contact
-userRouter.post("/contact", async (req, res) => {
+userRouter.post("/contacts", async (req, res) => {
     const { username, contact } = req.body;
     try {
-        const user = await Users.findOne({ username });
-        const newContact = await Users.findOne({ contact });
-        if(!newContact) httpResponse(res, 500, {}, "User does not exist.")
+        const user = await Users.findOne({ username: username });
+        console.log(user);
+        const newContact = await Users.findOne({ username: contact });
+        console.log(newContact);
+        if(user?.inbox.some(obj => obj.username == newContact?.username)){
+            httpResponse(res, 500, {}, "User already added.");
+        }
+        else if(!newContact) httpResponse(res, 500, {}, "User does not exist.")
         else if(newContact) {
-            console.log(user);
-            //httpResponse(res, 200, { _id: newContact._id, username: newContact.username }, "Added Contact");
-            res.status(500);
+            user?.inbox.push({ _id: newContact._id, username: newContact.username });
+            user?.save();
+            httpResponse(res, 200, { ...user?.toObject() }, "Added Contact");
         }
     } catch(error) {
         console.log(error);

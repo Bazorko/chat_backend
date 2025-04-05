@@ -41,7 +41,6 @@ userRouter.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, funct
         yield newUser.save();
         const user = yield userSchema_1.default.findOne({ email });
         const rawData = user === null || user === void 0 ? void 0 : user.toObject();
-        console.log(rawData);
         (0, HttpResponse_1.httpResponse)(res, 201, Object.assign({}, rawData), "Account created.");
     }
     catch (error) {
@@ -60,18 +59,22 @@ userRouter.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
         (0, HttpResponse_1.httpResponse)(res, 500, {}, "There was an error searching for your account.");
     }
 }));
-//Add Contact
-userRouter.post("/contact", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, contact } = req.body;
     try {
-        const user = yield userSchema_1.default.findOne({ username });
-        const newContact = yield userSchema_1.default.findOne({ contact });
-        if (!newContact)
+        const user = yield userSchema_1.default.findOne({ username: username });
+        console.log(user);
+        const newContact = yield userSchema_1.default.findOne({ username: contact });
+        console.log(newContact);
+        if (user === null || user === void 0 ? void 0 : user.inbox.some(obj => obj.username == (newContact === null || newContact === void 0 ? void 0 : newContact.username))) {
+            (0, HttpResponse_1.httpResponse)(res, 500, {}, "User already added.");
+        }
+        else if (!newContact)
             (0, HttpResponse_1.httpResponse)(res, 500, {}, "User does not exist.");
         else if (newContact) {
-            console.log(user);
-            //httpResponse(res, 200, { _id: newContact._id, username: newContact.username }, "Added Contact");
-            res.status(500);
+            user === null || user === void 0 ? void 0 : user.inbox.push({ _id: newContact._id, username: newContact.username });
+            user === null || user === void 0 ? void 0 : user.save();
+            (0, HttpResponse_1.httpResponse)(res, 200, Object.assign({}, user === null || user === void 0 ? void 0 : user.toObject()), "Added Contact");
         }
     }
     catch (error) {
