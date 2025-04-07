@@ -59,13 +59,12 @@ userRouter.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
         (0, HttpResponse_1.httpResponse)(res, 500, {}, "There was an error searching for your account.");
     }
 }));
+//Add contact
 userRouter.post("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, contact } = req.body;
     try {
-        const user = yield userSchema_1.default.findOne({ username: username });
-        console.log(user);
+        const user = yield userSchema_1.default.findOne({ username });
         const newContact = yield userSchema_1.default.findOne({ username: contact });
-        console.log(newContact);
         if (user === null || user === void 0 ? void 0 : user.inbox.some(obj => obj.username == (newContact === null || newContact === void 0 ? void 0 : newContact.username))) {
             (0, HttpResponse_1.httpResponse)(res, 500, {}, "User already added.");
         }
@@ -80,6 +79,22 @@ userRouter.post("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (error) {
         console.log(error);
         (0, HttpResponse_1.httpResponse)(res, 500, {}, "There was an error searching for your account.");
+    }
+}));
+userRouter.delete("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { username, userToRemove } = req.body;
+    try {
+        const user = yield userSchema_1.default.findOne({ username });
+        if (user) {
+            const newInbox = user.inbox.filter(contact => contact.username !== userToRemove);
+            user.set("inbox", newInbox);
+            yield user.save();
+            (0, HttpResponse_1.httpResponse)(res, 200, Object.assign({}, user.toObject()), "Contact Deleted.");
+        }
+    }
+    catch (error) {
+        console.log(error);
+        (0, HttpResponse_1.httpResponse)(res, 500, {}, "An unexpected error occured. Try again later.");
     }
 }));
 exports.default = userRouter;

@@ -45,13 +45,12 @@ userRouter.post("/signin", async (req, res) => {
     }
 });
 
+//Add contact
 userRouter.post("/contacts", async (req, res) => {
     const { username, contact } = req.body;
     try {
-        const user = await Users.findOne({ username: username });
-        console.log(user);
+        const user = await Users.findOne({ username });
         const newContact = await Users.findOne({ username: contact });
-        console.log(newContact);
         if(user?.inbox.some(obj => obj.username == newContact?.username)){
             httpResponse(res, 500, {}, "User already added.");
         }
@@ -64,6 +63,22 @@ userRouter.post("/contacts", async (req, res) => {
     } catch(error) {
         console.log(error);
         httpResponse(res, 500, {}, "There was an error searching for your account.");
+    }
+});
+
+userRouter.delete("/contacts", async (req, res) => {
+    const { username, userToRemove } = req.body;
+    try {
+        const user = await Users.findOne({ username });
+        if(user){
+            const newInbox = user.inbox.filter(contact => contact.username !== userToRemove);
+            user.set("inbox", newInbox)
+            await user.save();
+            httpResponse(res, 200, { ...user.toObject() }, "Contact Deleted.")
+        }
+    } catch(error) {
+        console.log(error);
+        httpResponse(res, 500, {}, "An unexpected error occured. Try again later.");
     }
 });
 
