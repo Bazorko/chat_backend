@@ -1,6 +1,7 @@
 import express from "express";
 import FindUser from "../middleware/FindUser";
 import Users from "../schemas/userSchema";
+import Messages from "../schemas/chatSchema";
 import { httpResponse } from "../middleware/HttpResponse";
 
 const userRouter = express.Router();
@@ -45,6 +46,7 @@ userRouter.post("/signin", async (req, res) => {
     }
 });
 
+
 //Add contact
 userRouter.post("/contacts", async (req, res) => {
     const { username, contact } = req.body;
@@ -66,6 +68,7 @@ userRouter.post("/contacts", async (req, res) => {
     }
 });
 
+//Delete contact
 userRouter.delete("/contacts", async (req, res) => {
     const { username, userToRemove } = req.body;
     try {
@@ -79,6 +82,27 @@ userRouter.delete("/contacts", async (req, res) => {
     } catch(error) {
         console.log(error);
         httpResponse(res, 500, {}, "An unexpected error occured. Try again later.");
+    }
+});
+
+
+//Download messages
+userRouter.post("/messages", async (req, res) => {
+    const { self, contact } = req.body;
+    try {
+        const messages = await Messages.find({
+            $or: [
+                { to: { $in: [ self, contact ] } },
+                { from: { $in: [ self, contact ] } }
+            ]
+        });
+        if(messages){
+            console.log(messages);
+            httpResponse(res, 200, { messages }, "Found messages from you and this recipient.");
+        }
+    } catch(error) {
+        console.log(error);
+        httpResponse(res, 200, {}, "An error occured trying to find your messages with this person.");
     }
 });
 

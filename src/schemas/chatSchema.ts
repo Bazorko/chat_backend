@@ -1,6 +1,26 @@
 import mongoose from "mongoose";
+import Users from "./userSchema";
 
 const { Schema, model } = mongoose;
+
+/*
+const chatsSchema = new Schema({
+    id: Schema.ObjectId,
+    participants: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Users",
+            required: true
+        }
+    ],
+    ref: {
+        type: Schema.Types.ObjectId,
+        ref: 'Message',
+    }
+});
+
+export const Chats = model('Chats', chatsSchema);
+*/
 
 const messageSchema = new Schema({
     to: { type: String, required: true },
@@ -9,11 +29,6 @@ const messageSchema = new Schema({
     sentAt: { type: Date, default: Date.now },
 });
 
-export const Message = model('Message', messageSchema);
+const Messages = model('Message', messageSchema);
 
-const chatsSchema = new Schema({
-    id: Schema.ObjectId,
-    ref: "Message"
-});
-
-export const Chats = model('Chats', chatsSchema);
+export default Messages;

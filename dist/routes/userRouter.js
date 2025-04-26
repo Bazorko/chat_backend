@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const FindUser_1 = __importDefault(require("../middleware/FindUser"));
 const userSchema_1 = __importDefault(require("../schemas/userSchema"));
+const chatSchema_1 = __importDefault(require("../schemas/chatSchema"));
 const HttpResponse_1 = require("../middleware/HttpResponse");
 const userRouter = express_1.default.Router();
 //Signup
@@ -81,6 +82,7 @@ userRouter.post("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, fun
         (0, HttpResponse_1.httpResponse)(res, 500, {}, "There was an error searching for your account.");
     }
 }));
+//Delete contact
 userRouter.delete("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, userToRemove } = req.body;
     try {
@@ -95,6 +97,26 @@ userRouter.delete("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, f
     catch (error) {
         console.log(error);
         (0, HttpResponse_1.httpResponse)(res, 500, {}, "An unexpected error occured. Try again later.");
+    }
+}));
+//Download messages
+userRouter.post("/messages", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { self, contact } = req.body;
+    try {
+        const messages = yield chatSchema_1.default.find({
+            $or: [
+                { to: { $in: [self, contact] } },
+                { from: { $in: [self, contact] } }
+            ]
+        });
+        if (messages) {
+            console.log(messages);
+            (0, HttpResponse_1.httpResponse)(res, 200, { messages }, "Found messages from you and this recipient.");
+        }
+    }
+    catch (error) {
+        console.log(error);
+        (0, HttpResponse_1.httpResponse)(res, 200, {}, "An error occured trying to find your messages with this person.");
     }
 }));
 exports.default = userRouter;
