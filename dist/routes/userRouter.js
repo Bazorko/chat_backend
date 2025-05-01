@@ -13,10 +13,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const HttpResponse_1 = require("../middleware/HttpResponse");
 const FindUser_1 = __importDefault(require("../middleware/FindUser"));
 const userSchema_1 = __importDefault(require("../schemas/userSchema"));
-const chatSchema_1 = __importDefault(require("../schemas/chatSchema"));
-const HttpResponse_1 = require("../middleware/HttpResponse");
 const userRouter = express_1.default.Router();
 //Signup
 userRouter.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -51,72 +50,13 @@ userRouter.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, funct
 }));
 //Signin
 userRouter.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email } = req.body;
     try {
-        (0, FindUser_1.default)(email, res);
+        const { identifier } = req.body;
+        (0, FindUser_1.default)(identifier, res);
     }
     catch (error) {
         console.log(error);
         (0, HttpResponse_1.httpResponse)(res, 500, {}, "There was an error searching for your account.");
-    }
-}));
-//Add contact
-userRouter.post("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, contact } = req.body;
-    try {
-        const user = yield userSchema_1.default.findOne({ username });
-        const newContact = yield userSchema_1.default.findOne({ username: contact });
-        if (user === null || user === void 0 ? void 0 : user.inbox.some(obj => obj.username == (newContact === null || newContact === void 0 ? void 0 : newContact.username))) {
-            (0, HttpResponse_1.httpResponse)(res, 500, {}, "User already added.");
-        }
-        else if (!newContact)
-            (0, HttpResponse_1.httpResponse)(res, 500, {}, "User does not exist.");
-        else if (newContact) {
-            user === null || user === void 0 ? void 0 : user.inbox.push({ _id: newContact._id, username: newContact.username });
-            user === null || user === void 0 ? void 0 : user.save();
-            (0, HttpResponse_1.httpResponse)(res, 200, Object.assign({}, user === null || user === void 0 ? void 0 : user.toObject()), "Added Contact");
-        }
-    }
-    catch (error) {
-        console.log(error);
-        (0, HttpResponse_1.httpResponse)(res, 500, {}, "There was an error searching for your account.");
-    }
-}));
-//Delete contact
-userRouter.delete("/contacts", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, userToRemove } = req.body;
-    try {
-        const user = yield userSchema_1.default.findOne({ username });
-        if (user) {
-            const newInbox = user.inbox.filter(contact => contact.username !== userToRemove);
-            user.set("inbox", newInbox);
-            yield user.save();
-            (0, HttpResponse_1.httpResponse)(res, 200, Object.assign({}, user.toObject()), "Contact Deleted.");
-        }
-    }
-    catch (error) {
-        console.log(error);
-        (0, HttpResponse_1.httpResponse)(res, 500, {}, "An unexpected error occured. Try again later.");
-    }
-}));
-//Download messages
-userRouter.post("/messages", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { self, contact } = req.body;
-    try {
-        const messages = yield chatSchema_1.default.find({
-            $or: [
-                { to: { $in: [self, contact] } },
-                { from: { $in: [self, contact] } }
-            ]
-        });
-        if (messages) {
-            console.log(messages);
-            (0, HttpResponse_1.httpResponse)(res, 200, { messages }, "Found messages from you and this recipient.");
-        }
-    }
-    catch (error) {
-        console.log(error);
-        (0, HttpResponse_1.httpResponse)(res, 200, {}, "An error occured trying to find your messages with this person.");
     }
 }));
 exports.default = userRouter;
