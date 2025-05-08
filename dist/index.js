@@ -25,10 +25,7 @@ const chatSchema_1 = __importDefault(require("./schemas/chatSchema"));
 const app = (0, express_1.default)();
 const server = (0, node_http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
-    cors: {
-        origin: 'http://localhost:5173',
-        methods: ['POST']
-    }
+    cors: cors_options_1.default
 });
 app.use((0, cors_1.default)(cors_options_1.default));
 app.use(express_1.default.json());
@@ -37,16 +34,21 @@ app.use((0, cookie_parser_1.default)());
 app.use("/user", userRouter_1.default);
 app.use("/api", apiRouter_1.default);
 io.on("connection", (socket) => {
-    console.log(`user: ${socket.id} connected`);
-    socket.on("sendMessage", (_a, callback_1) => __awaiter(void 0, [_a, callback_1], void 0, function* ({ to, from, content }, callback) {
+    console.log(`${socket.id} connected`);
+    //Join room
+    let roomNameToEmitTo = "";
+    socket.on("join room", (roomName) => {
+        socket.join(roomName);
+        roomNameToEmitTo = roomName;
+    });
+    //Message handling
+    socket.on("send message", (_a, callback_1) => __awaiter(void 0, [_a, callback_1], void 0, function* ({ to, from, content }, callback) {
         const newMessage = yield chatSchema_1.default.create({ to, from, content });
-        yield newMessage.save();
-        io.emit("returnMessage", newMessage);
+        io.to(roomNameToEmitTo).emit("return message", newMessage);
         callback();
     }));
     socket.on("disconnect", () => {
         console.log(`${socket.id} disconnected`);
     });
 });
-server.listen(process.env.SOCKET_PORT, () => console.log(`Socket.io server listening on port ${process.env.SOCKET_PORT}`));
-app.listen(process.env.PORT, () => console.log(`Server listening on port ${process.env.PORT}.`));
+server.listen(process.env.PORT, () => console.log(`Socket.io server listening on port ${process.env.PORT}`));

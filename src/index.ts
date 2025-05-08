@@ -12,10 +12,7 @@ import Messages from "./schemas/chatSchema";
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
-    cors: {
-        origin: 'http://localhost:5173',
-        methods: ['POST']
-    }
+    cors: corsOptions
 });
 
 app.use(cors(corsOptions));
@@ -28,12 +25,17 @@ app.use("/user", userRouter);
 app.use("/api", apiRouter);
 
 io.on("connection", (socket) => {
-    console.log(`user: ${socket.id} connected`);
-    socket.on("sendMessage", async ({ to, from, content }, callback) => {
-            const newMessage = await Messages.create({ to, from, content});
-            await newMessage.save();
-        io.emit("returnMessage", newMessage);
-
+    console.log(`${socket.id} connected`);
+    //Join room
+    let roomNameToEmitTo = "";
+    socket.on("join room", (roomName) => {
+        socket.join(roomName);
+        roomNameToEmitTo = roomName
+    });
+    //Message handling
+    socket.on("send message", async ({ to, from, content }, callback) => {
+        const newMessage = await Messages.create({ to, from, content});
+        io.to(roomNameToEmitTo).emit("return message", newMessage);
         callback();
     });
     socket.on("disconnect", () => {
@@ -41,6 +43,4 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(process.env.SOCKET_PORT, () => console.log(`Socket.io server listening on port ${ process.env.SOCKET_PORT }`));
-
-app.listen(process.env.PORT, () => console.log(`Server listening on port ${ process.env.PORT }.`));
+server.listen(process.env.PORT, () => console.log(`Socket.io server listening on port ${ process.env.PORT }`));
